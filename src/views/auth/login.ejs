@@ -1,0 +1,58 @@
+<%- include('../partials/header') %>
+<% const isStaff = role === 'staff'; %>
+<div class="auth-shell">
+  <aside class="auth-aside<%= isStaff ? ' staff' : '' %>">
+    <% if (isStaff) { %>
+      <h2>Staff console</h2>
+      <p>For San Pedro water district personnel handling household water complaints.</p>
+      <ul>
+        <li><%- h.icon('list') %><span>Review, filter and sort every complaint in the service area</span></li>
+        <li><%- h.icon('users') %><span>Assign field staff and move complaints from Pending to Resolved</span></li>
+        <li><%- h.icon('chart') %><span>Report on complaints by barangay, type and status</span></li>
+      </ul>
+    <% } else { %>
+      <h2>Welcome back</h2>
+      <p>Log in to check on your complaints or report a new water problem at home.</p>
+      <ul>
+        <li><%- h.icon('droplet') %><span>Report rusty water, low pressure, foul odor or leaks</span></li>
+        <li><%- h.icon('image') %><span>Attach photos as evidence</span></li>
+        <li><%- h.icon('clock') %><span>See every status update with its date and time</span></li>
+      </ul>
+    <% } %>
+    <svg class="wave" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0,60 C80,100 160,20 240,50 C320,80 360,40 400,55 L400,120 L0,120 Z" fill="#fff"/></svg>
+  </aside>
+  <div class="auth-main">
+    <h1><%= isStaff ? 'Staff log in' : 'Log in' %></h1>
+    <p class="muted"><%= isStaff ? 'Use your water district staff account.' : 'Use the email and password you registered with.' %></p>
+
+    <% if (locals.loginError) { %>
+      <div class="notice" role="alert" style="margin-bottom:16px"><%- h.icon('alert') %><span><%= loginError %></span></div>
+    <% } %>
+
+    <form method="post" action="<%= action %>" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="next" value="<%= next %>">
+      <div class="field">
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" autocomplete="username" required value="<%= values.email || '' %>" autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Log in</button>
+      </div>
+    </form>
+
+    <div class="auth-alt">
+      <% if (isStaff) { %>
+        Not staff? <a href="/login">Resident log in</a>
+      <% } else { %>
+        New to DropBoxed? <a href="/register">Create a resident account</a><br>
+        Water district staff? <a href="/staff/login">Staff log in</a>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>

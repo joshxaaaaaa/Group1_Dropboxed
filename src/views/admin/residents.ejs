@@ -1,0 +1,53 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>Residents</h1>
+    <p>Registered household accounts. Deactivating an account blocks log-in but keeps its complaints on record.</p>
+  </div>
+</div>
+
+<section class="card card-flush">
+  <form method="get" action="/admin/residents" class="results-bar" role="search">
+    <span><strong style="color:var(--ink)"><%= h.plural(residents.length, 'resident') %></strong><%= q ? ` matching “${q}”` : '' %></span>
+    <span style="display:flex;gap:8px">
+      <label for="q" class="sr-only">Search residents</label>
+      <input id="q" name="q" type="search" placeholder="Name or email" value="<%= q %>" style="min-height:36px;padding:6px 10px;width:220px">
+      <button class="btn btn-secondary btn-sm" type="submit"><%- h.icon('search', 'icon icon-sm') %>Search</button>
+    </span>
+  </form>
+  <% if (residents.length) { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Resident</th><th>Phone</th><th class="num">Complaints</th><th class="num">Open</th><th>Last complaint</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          <% for (const r of residents) { %>
+            <tr>
+              <td><strong><%= r.full_name %></strong><span class="cell-sub"><%= r.email %></span></td>
+              <td class="nowrap"><%= r.phone_number || '—' %></td>
+              <td class="num"><%= r.complaint_count %></td>
+              <td class="num"><%= r.open_count %></td>
+              <td class="nowrap"><%= r.last_complaint_at ? h.formatDate(r.last_complaint_at) : '—' %></td>
+              <td class="nowrap"><%= h.formatDate(r.created_at) %></td>
+              <td><span class="badge <%= r.account_status === 'Active' ? 'badge-resolved' : 'badge-inactive' %>"><%= r.account_status %></span></td>
+              <td class="right">
+                <form method="post" action="/admin/residents/<%= r.user_id %>/status">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <% if (r.account_status === 'Active') { %>
+                    <input type="hidden" name="account_status" value="Inactive">
+                    <button class="btn btn-danger btn-sm" type="submit" data-confirm="Deactivate <%= r.full_name %>? They will no longer be able to log in.">Deactivate</button>
+                  <% } else { %>
+                    <input type="hidden" name="account_status" value="Active">
+                    <button class="btn btn-secondary btn-sm" type="submit">Reactivate</button>
+                  <% } %>
+                </form>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div class="empty-state"><%- h.icon('users') %><p><%= q ? 'No residents match your search.' : 'No residents have registered yet.' %></p></div>
+  <% } %>
+</section>
+<%- include('../partials/footer') %>

@@ -1,0 +1,27 @@
+<%
+  // Submission event + every status_logs row, oldest first.
+  const stepIcon = { 'In Progress': 'wrench', Resolved: 'check' };
+%>
+<ol class="timeline">
+  <li>
+    <span class="t-marker pending"><%- h.icon('inbox') %></span>
+    <div class="t-title">Submitted</div>
+    <div class="t-meta"><%= h.formatDateTime(complaint.submitted_at) %> · by <%= locals.showResident ? complaint.resident_name : 'you' %></div>
+  </li>
+  <% for (const log of logs) { %>
+    <li>
+      <span class="t-marker <%= h.statusClass(log.status) %>"><%- h.icon(stepIcon[log.status] || 'clock') %></span>
+      <div class="t-title"><%= log.status === 'Resolved' ? 'Resolved' : `Moved to ${log.status}` %></div>
+      <div class="t-meta"><%= h.formatDateTime(log.updated_at) %> · <%= log.staff_name %></div>
+      <% if (log.remarks) { %><div class="t-remarks"><%= log.remarks %></div><% } %>
+    </li>
+  <% } %>
+  <% if (complaint.status !== 'Resolved') { %>
+    <li>
+      <span class="t-marker"><%- h.icon('clock') %></span>
+      <div class="t-title" style="color:var(--muted)">
+        <%= complaint.status === 'Pending' ? 'Waiting for the water district to start work' : 'Waiting for resolution' %>
+      </div>
+    </li>
+  <% } %>
+</ol>

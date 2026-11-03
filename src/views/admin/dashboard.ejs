@@ -1,0 +1,97 @@
+<%- include('../partials/header') %>
+<%
+  const firstName = currentUser.name.split(' ')[0];
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const open = summary.pending + summary.in_progress;
+%>
+<div class="page-head">
+  <div>
+    <h1><%= greeting %>, <%= firstName %></h1>
+    <p><%= h.plural(open, 'open complaint') %> across San Pedro · <%= h.number(summary.pending) %> waiting to be started</p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-secondary" href="/admin/reports"><%- h.icon('chart') %>Reports</a>
+    <a class="btn btn-primary" href="/admin/complaints?status=Pending&sort=oldest"><%- h.icon('list') %>Work the queue</a>
+  </div>
+</div>
+
+<div class="kpis">
+  <a class="kpi" href="/admin/complaints"><div class="kpi-label">All complaints</div><div class="kpi-value"><%= h.number(summary.total) %></div><div class="kpi-note">since records began</div></a>
+  <a class="kpi" href="/admin/complaints?status=Pending"><div class="kpi-label"><span class="dot dot-pending"></span>Pending</div><div class="kpi-value"><%= h.number(summary.pending) %></div><div class="kpi-note">not yet started</div></a>
+  <a class="kpi" href="/admin/complaints?status=In%20Progress"><div class="kpi-label"><span class="dot dot-progress"></span>In progress</div><div class="kpi-value"><%= h.number(summary.in_progress) %></div><div class="kpi-note">being worked on</div></a>
+  <a class="kpi" href="/admin/complaints?status=Resolved"><div class="kpi-label"><span class="dot dot-resolved"></span>Resolved</div><div class="kpi-value"><%= h.number(summary.resolved) %></div><div class="kpi-note"><%= h.percent(summary.resolved, summary.total) %>% of all</div></a>
+  <a class="kpi" href="/admin/complaints?flagged=yes"><div class="kpi-label"><%- h.icon('flag', 'icon icon-sm') %>Flagged</div><div class="kpi-value"><%= h.number(summary.flagged) %></div><div class="kpi-note">for review</div></a>
+  <div class="kpi"><div class="kpi-label"><%- h.icon('clock', 'icon icon-sm') %>Avg. time to resolve</div><div class="kpi-value"><%= h.duration(summary.avg_resolution_hours) %></div><div class="kpi-note">submitted → resolved</div></div>
+</div>
+
+<div class="grid grid-2" style="margin-bottom:16px">
+  <section class="card">
+    <div class="card-head"><h2>Complaints by type</h2><span class="muted">all time</span></div>
+    <%- include('../partials/status-bars', {
+      rows: byCategory.map((c) => ({ ...c, label: c.category_name, href: `/admin/complaints?category=${c.category_id}` })),
+    }) %>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>Waiting longest</h2><a class="small" href="/admin/complaints?status=Pending&sort=oldest">View all pending</a></div>
+    <% if (oldestPending.length) { %>
+      <ul class="mini-list">
+        <% for (const c of oldestPending) { %>
+          <li>
+            <div><a href="/admin/complaints/<%= c.complaint_id %>">#<%= c.complaint_id %> <%= c.category_name %></a><div class="meta">Brgy. <%= c.barangay %></div></div>
+            <span class="badge badge-pending nowrap"><%= h.timeAgo(c.submitted_at) %></span>
+          </li>
+        <% } %>
+      </ul>
+    <% } else { %>
+      <div class="empty-state" style="padding:20px"><%- h.icon('checkCircle') %><p>No pending complaints. Nice work.</p></div>
+    <% } %>
+  </section>
+</div>
+
+<div class="grid grid-2" style="margin-bottom:16px">
+  <section class="card">
+    <div class="card-head"><h2>Assigned to me</h2><a class="small" href="/admin/complaints?assigned=me&status=open">View all</a></div>
+    <% if (mine.rows.length) { %>
+      <ul class="mini-list">
+        <% for (const c of mine.rows) { %>
+          <li>
+            <div><a href="/admin/complaints/<%= c.complaint_id %>">#<%= c.complaint_id %> <%= c.category_name %></a><div class="meta"><%= c.house_number %> <%= c.street %>, Brgy. <%= c.barangay %></div></div>
+            <%- include('../partials/status-badge', { status: c.status }) %>
+          </li>
+        <% } %>
+      </ul>
+      <% if (mine.total > mine.rows.length) { %><p class="small muted" style="margin:10px 0 0">+ <%= mine.total - mine.rows.length %> more</p><% } %>
+    <% } else { %>
+      <div class="empty-state" style="padding:20px"><%- h.icon('inbox') %><p>Nothing open is assigned to you.</p></div>
+    <% } %>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>Flagged for review</h2><a class="small" href="/admin/complaints?flagged=yes">View all</a></div>
+    <% if (flagged.rows.length) { %>
+      <ul class="mini-list">
+        <% for (const c of flagged.rows) { %>
+          <li>
+            <div style="min-width:0"><a href="/admin/complaints/<%= c.complaint_id %>">#<%= c.complaint_id %> <%= c.category_name %></a><div class="meta truncate"><%= c.flag_reason %></div></div>
+            <%- include('../partials/status-badge', { status: c.status }) %>
+          </li>
+        <% } %>
+      </ul>
+    <% } else { %>
+      <div class="empty-state" style="padding:20px"><%- h.icon('flag') %><p>No complaints are flagged.</p></div>
+    <% } %>
+  </section>
+</div>
+
+<section class="card card-flush">
+  <div class="card-head" style="padding-bottom:14px"><h2>Latest complaints</h2><a class="small" href="/admin/complaints">Open the queue</a></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Complaint</th><th>Location</th><th>Resident</th><th>Submitted</th><th>Status</th><th>Assigned</th></tr></thead>
+      <tbody><%- include('../partials/complaint-rows', { rows: recent }) %></tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

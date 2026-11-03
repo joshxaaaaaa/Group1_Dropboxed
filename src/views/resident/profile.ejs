@@ -1,0 +1,61 @@
+<%- include('../partials/header', { narrow: true }) %>
+<%
+  const pwErrors = locals.passwordErrors || {};
+  const invalid = (bag, name) => bag[name] ? ` class="is-invalid" aria-invalid="true" aria-describedby="${name}-error"` : '';
+%>
+<div class="page-head">
+  <div style="display:flex;gap:14px;align-items:center">
+    <span class="avatar avatar-lg"><%= h.initials(user.full_name) %></span>
+    <div>
+      <h1 style="margin:0">My profile</h1>
+      <p style="margin:0">Member since <%= h.formatDate(user.created_at) %></p>
+    </div>
+  </div>
+</div>
+
+<form class="card" method="post" action="/my/profile" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="card-head"><h2>Contact details</h2></div>
+  <div class="form-grid">
+    <div class="field span-2">
+      <label for="email">Email address</label>
+      <input id="email" type="email" value="<%= user.email %>" readonly>
+      <span class="hint">Your email identifies your account and can't be changed here.</span>
+    </div>
+    <div class="field">
+      <label for="full_name">Full name</label>
+      <input id="full_name" name="full_name" type="text" maxlength="150" value="<%= values.full_name %>"<%- invalid(errors, 'full_name') %>>
+      <%- include('../partials/field-error', { name: 'full_name' }) %>
+    </div>
+    <div class="field">
+      <label for="phone_number">Mobile number <span class="label-optional">(optional)</span></label>
+      <input id="phone_number" name="phone_number" type="tel" maxlength="20" value="<%= values.phone_number %>"<%- invalid(errors, 'phone_number') %>>
+      <%- include('../partials/field-error', { name: 'phone_number' }) %>
+    </div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Save changes</button></div>
+</form>
+
+<form class="card" method="post" action="/my/profile/password" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="card-head"><h2>Change password</h2></div>
+  <div class="form-grid">
+    <div class="field span-2">
+      <label for="current_password">Current password</label>
+      <input id="current_password" name="current_password" type="password" autocomplete="current-password"<%- invalid(pwErrors, 'current_password') %>>
+      <%- include('../partials/field-error', { name: 'current_password', errors: pwErrors }) %>
+    </div>
+    <div class="field">
+      <label for="new_password">New password</label>
+      <input id="new_password" name="new_password" type="password" autocomplete="new-password"<%- invalid(pwErrors, 'new_password') %>>
+      <%- include('../partials/field-error', { name: 'new_password', errors: pwErrors }) %>
+    </div>
+    <div class="field">
+      <label for="confirm_password">Confirm new password</label>
+      <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password"<%- invalid(pwErrors, 'confirm_password') %>>
+      <%- include('../partials/field-error', { name: 'confirm_password', errors: pwErrors }) %>
+    </div>
+  </div>
+  <div class="form-actions"><button class="btn btn-secondary" type="submit"><%- h.icon('key') %>Update password</button></div>
+</form>
+<%- include('../partials/footer') %>

@@ -1,0 +1,65 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>My complaints</h1>
+    <p>Track every water problem you've reported to the water district.</p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-primary" href="/my/complaints/new"><%- h.icon('plus') %>File a complaint</a>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="kpi-label">Total filed</div><div class="kpi-value"><%= h.number(counts.total) %></div></div>
+  <div class="kpi"><div class="kpi-label"><span class="dot dot-pending"></span>Pending</div><div class="kpi-value"><%= h.number(counts.pending) %></div></div>
+  <div class="kpi"><div class="kpi-label"><span class="dot dot-progress"></span>In progress</div><div class="kpi-value"><%= h.number(counts.in_progress) %></div></div>
+  <div class="kpi"><div class="kpi-label"><span class="dot dot-resolved"></span>Resolved</div><div class="kpi-value"><%= h.number(counts.resolved) %></div></div>
+</div>
+
+<% if (counts.total > 0) { %>
+  <nav class="tabs" aria-label="Filter by status">
+    <% const tabs = [['', 'All', counts.total], ['Pending', 'Pending', counts.pending], ['In Progress', 'In Progress', counts.in_progress], ['Resolved', 'Resolved', counts.resolved]]; %>
+    <% for (const [value, label, count] of tabs) { %>
+      <a class="tab" href="/my/complaints<%= value ? '?status=' + encodeURIComponent(value) : '' %>"<% if (status === value) { %> aria-current="page"<% } %>>
+        <%= label %> <span class="count"><%= count %></span>
+      </a>
+    <% } %>
+  </nav>
+<% } %>
+
+<% if (complaints.length === 0) { %>
+  <div class="card empty-state">
+    <%- h.icon('droplet') %>
+    <% if (counts.total === 0) { %>
+      <h3>No complaints yet</h3>
+      <p>If you notice rusty water, low pressure, a foul odor or a leak at home, report it here.</p>
+      <a class="btn btn-primary" href="/my/complaints/new"><%- h.icon('plus') %>File your first complaint</a>
+    <% } else { %>
+      <h3>No <%= status.toLowerCase() %> complaints</h3>
+      <p><a href="/my/complaints">Show all complaints</a></p>
+    <% } %>
+  </div>
+<% } else { %>
+  <div class="complaint-list">
+    <% for (const c of complaints) { %>
+      <a class="complaint-item" href="/my/complaints/<%= c.complaint_id %>">
+        <span class="complaint-icon"><%- h.icon(h.categoryIcon(c.category_name)) %></span>
+        <div style="min-width:0">
+          <h3><%= c.category_name %> <span class="muted" style="font-weight:500">· #<%= c.complaint_id %></span></h3>
+          <div class="complaint-meta">
+            <span><%- h.icon('pin', 'icon icon-sm') %><%= c.house_number %> <%= c.street %>, Brgy. <%= c.barangay %></span>
+            <span><%- h.icon('clock', 'icon icon-sm') %><%= h.formatDate(c.submitted_at) %></span>
+            <% if (c.attachment_count) { %><span><%- h.icon('image', 'icon icon-sm') %><%= h.plural(c.attachment_count, 'photo') %></span><% } %>
+          </div>
+        </div>
+        <div class="right">
+          <%- include('../partials/status-badge', { status: c.status }) %>
+          <span class="small muted">
+            <% if (c.status === 'Resolved') { %>Resolved <%= h.formatDate(c.resolved_at) %><% } else { %>Filed <%= h.timeAgo(c.submitted_at) %><% } %>
+          </span>
+        </div>
+      </a>
+    <% } %>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

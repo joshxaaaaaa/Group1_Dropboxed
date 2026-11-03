@@ -1,0 +1,58 @@
+<%- include('../partials/header') %>
+<%
+  const invalid = (name) => errors[name] ? ` class="is-invalid" aria-invalid="true" aria-describedby="${name}-error"` : '';
+%>
+<div class="auth-shell">
+  <aside class="auth-aside">
+    <h2>Report water problems at home</h2>
+    <p>One account lets you file complaints for your household and follow each one until it is resolved.</p>
+    <ul>
+      <li><%- h.icon('shield') %><span>Your password is stored only as a secure hash</span></li>
+      <li><%- h.icon('pin') %><span>Saved addresses make your next report faster</span></li>
+      <li><%- h.icon('checkCircle') %><span>See when field staff start and finish work</span></li>
+    </ul>
+    <svg class="wave" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0,60 C80,100 160,20 240,50 C320,80 360,40 400,55 L400,120 L0,120 Z" fill="#fff"/></svg>
+  </aside>
+  <div class="auth-main">
+    <h1>Create a resident account</h1>
+    <p class="muted">For households in San Pedro, Laguna.</p>
+
+    <form method="post" action="/register" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label for="full_name">Full name</label>
+        <input id="full_name" name="full_name" type="text" autocomplete="name" maxlength="150" required value="<%= values.full_name || '' %>"<%- invalid('full_name') %>>
+        <%- include('../partials/field-error', { name: 'full_name' }) %>
+      </div>
+      <div class="field">
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" autocomplete="email" maxlength="150" required value="<%= values.email || '' %>"<%- invalid('email') %>>
+        <%- include('../partials/field-error', { name: 'email' }) %>
+      </div>
+      <div class="field">
+        <label for="phone_number">Mobile number <span class="label-optional">(optional)</span></label>
+        <input id="phone_number" name="phone_number" type="tel" autocomplete="tel" maxlength="20" placeholder="0917 123 4567" value="<%= values.phone_number || '' %>"<%- invalid('phone_number') %>>
+        <span class="hint">Lets field staff contact you about access to your home.</span>
+        <%- include('../partials/field-error', { name: 'phone_number' }) %>
+      </div>
+      <div class="form-grid" style="margin-top:16px">
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" required<%- invalid('password') %>>
+          <%- include('../partials/field-error', { name: 'password' }) %>
+        </div>
+        <div class="field">
+          <label for="confirm_password">Confirm password</label>
+          <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required<%- invalid('confirm_password') %>>
+          <%- include('../partials/field-error', { name: 'confirm_password' }) %>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:6px">At least 8 characters, with a letter and a number.</p>
+      <div class="form-actions">
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Create account</button>
+      </div>
+    </form>
+    <div class="auth-alt">Already registered? <a href="/login">Log in</a></div>
+  </div>
+</div>
+<%- include('../partials/footer') %>
