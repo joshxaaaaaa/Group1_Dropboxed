@@ -4,7 +4,7 @@ Every instruction in the COMP 018 activity sheets, checked against DropBoxed.
 
 **Status labels:** **Met** means confirmed by a test or inspection. **Your action** means only the group can do it. **Later** means work on other groups' projects, which is being done later.
 
-**How this was tested:** on throwaway PostgreSQL 18.6 servers, following the README from a clean copy of the project. Your real `dropboxed_db` has not been changed. Evidence for submission must come from your own runs.
+**How this was tested:** on throwaway PostgreSQL 18.6 servers, following the README from a clean copy of the project. The roles and privileges were then applied to the group's `dropboxed_db`, where `npm run db:verify` also passed all 48 tests. The CRUD smoke test, backup and restore ran on the throwaway servers only. Evidence for submission must come from your own runs.
 
 ## Activity 2: Database blueprint
 
@@ -48,7 +48,7 @@ The implementation is correct, but the PDF contradicts itself in these places. T
 | User and role setup documentation, no real passwords | Met | `docs/db-roles-setup.md` |
 | Troubleshooting guide | Met | `docs/troubleshooting.md` |
 | Excludes dependencies, dumps and secrets | Met | `.gitignore` covers `node_modules`, `.env`, `.env.setup`, `uploads`, `*.dump` |
-| Project in the group's own repository, accessible to other groups | Your action | `github.com/jedelacruz/Dropboxed` exists, with one commit. Push this work, and check access from an account outside the group |
+| Project in the group's own repository, accessible to other groups | Your action | `github.com/joshxaaaaaa/Group1_Dropboxed`. Check access from an account outside the group |
 | Every member added as collaborator | Your action | Check the repository settings |
 | Meaningful commits, every member contributing | **Your action, important** | History has one commit by one author. The sheet says the PDF must reflect the repository history, so each member should commit real work from here on. Do not back-date or invent commits |
 | Register in the Google Sheets tracker | Your action | Group, repository URL, branch, tech stack (Node.js/Express, PostgreSQL 18.6), status, PDF link |
@@ -69,7 +69,7 @@ The sheet has you do this on the other groups' projects. DropBoxed now has the s
 | Database, schema, table, sequence privileges | Met | `04_privileges.sql` |
 | Default privileges reviewed | Met | `ALTER DEFAULT PRIVILEGES`; tested on a new table |
 | No elevated attributes | Met | `db:verify` checks all 8 roles |
-| App does not use a superuser | Met once applied | `.env.example` and the code are ready, and the app warns if it is a superuser. **Your real `.env` still has `PGUSER=postgres`** until you apply this |
+| App does not use a superuser | Met | `.env.example` uses `dropboxed_app`, and the app warns at startup if it connects as a superuser. Each member's machine must be set up this way too |
 | Read-only accounts cannot write | Met | Tests 23 to 32 |
 | Users cannot modify outside their responsibilities | Met | Column-level grants; tests 8 to 18 |
 | No database creation or role management | Met | Tests in `db:verify` for each account |

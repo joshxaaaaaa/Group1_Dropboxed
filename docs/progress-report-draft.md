@@ -10,8 +10,8 @@ Before submitting, check that no password or secret appears anywhere, including 
 
 - **Project title:** DropBoxed: An Environmental Complaint Application for Household Water Quality Monitoring in San Pedro
 - **Course:** COMP 018 Database Administration, BSIT 3-2, Mr. John Kenneth Timblaco
-- **Group:** RIPARION, Group no. `[GROUP]`
-- **Repository:** https://github.com/jedelacruz/Dropboxed
+- **Group:** Group 1
+- **Repository:** https://github.com/joshxaaaaaa/Group1_Dropboxed
 - **Tracker:** `[GROUP: Google Sheets link]`
 
 | Member | Role in the project |
@@ -47,7 +47,7 @@ Copy the tables from `docs/user-roles.md`, and the access-control plan from `doc
 - **ERD:** the draw.io ERD from Part 5 of the blueprint. It still matches the implementation.
 - **Schema summary:** copy from `docs/database.md`.
 - **SQL scripts:** `00_create_database.sql`, `01_schema.sql`, `02_seed.sql`, `03_roles.sql`, `04_privileges.sql`, run by `npm run db:setup`.
-- **Seed data:** 4 categories in `02_seed.sql`. With `--sample`: 3 staff, 10 residents and about 60 complaints.
+- **Seed data:** 4 categories in `02_seed.sql`. With `--sample`: 5 staff, 10 residents and about 60 complaints.
 - **Changes from the approved design, with reasons:** copy the table at the end of `docs/database.md`.
 
 ## 6. Application evidence
