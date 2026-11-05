@@ -31,7 +31,7 @@ After `npm run db:setup -- --sample`, these sample accounts are available:
 | Application role | Log in at | Email | Password |
 |---|---|---|---|
 | Staff / Administrator | `/staff/login` | `admin@dropboxed.local` | `ADMIN_PASSWORD` from `.env.setup` (`Admin@12345` if left blank) |
-| Staff / Administrator | `/staff/login` | `maria.santos@dropboxed.local` | `Password@123` |
+| Staff / Administrator | `/staff/login` | `denver.reyes@dropboxed.local` | `Password@123` |
 | Resident | `/login` | `juan.delacruz@example.com` | `Password@123` |
 
 These are published sample credentials for local testing only.

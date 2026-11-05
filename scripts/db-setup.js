@@ -139,9 +139,11 @@ async function loadSampleData() {
   const hash = await bcrypt.hash(SAMPLE_PASSWORD, 10);
 
   const staffSeed = [
-    ['Maria Santos', 'maria.santos@dropboxed.local'],
-    ['Ramon Dizon', 'ramon.dizon@dropboxed.local'],
-    ['Liza Mercado', 'liza.mercado@dropboxed.local'],
+    ['Denver Reyes', 'denver.reyes@dropboxed.local'],
+    ['Jan Emmanuel Dela Cruz', 'jan.delacruz@dropboxed.local'],
+    ['Jhayciel Santiago', 'jhayciel.santiago@dropboxed.local'],
+    ['Joshua Abalo', 'joshua.abalo@dropboxed.local'],
+    ['Rhaine Cyrel Valera', 'rhaine.valera@dropboxed.local'],
   ];
   const residentSeed = [
     ['Juan Dela Cruz', 'juan.delacruz@example.com', '09171234501'],
