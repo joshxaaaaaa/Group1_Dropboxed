@@ -33,4 +33,10 @@ async function update(categoryId, { categoryName, description }) {
   );
 }
 
-module.exports = { list, findById, create, update };
+// fk_complaints_category rejects this while any complaint uses the category.
+async function remove(categoryId) {
+  const { rowCount } = await pool.query('DELETE FROM complaint_categories WHERE category_id = $1', [categoryId]);
+  return rowCount > 0;
+}
+
+module.exports = { list, findById, create, update, remove };

@@ -14,6 +14,7 @@ const config = {
   dbSchema: 'dropboxed',
   dbPoolMax: Number(process.env.DB_POOL_MAX) || 10,
   sessionSecret: process.env.SESSION_SECRET || 'dev-only-secret-change-me',
+  usingDefaultSessionSecret: !process.env.SESSION_SECRET,
   uploadDir: path.resolve(__dirname, '..', process.env.UPLOAD_DIR || 'uploads'),
   maxUploadBytes: (Number(process.env.MAX_UPLOAD_MB) || 5) * 1024 * 1024,
   maxUploadFiles: 5,

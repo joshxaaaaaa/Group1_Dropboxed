@@ -320,6 +320,17 @@ router.post('/categories/:id', async (req, res) => {
   res.redirect('/admin/categories');
 });
 
+router.post('/categories/:id/delete', async (req, res) => {
+  try {
+    const removed = await categoriesDb.remove(parseId(req.params.id));
+    req.flash(removed ? 'success' : 'error', removed ? 'Category removed.' : 'That category no longer exists.');
+  } catch (err) {
+    if (err.code !== PG.FOREIGN_KEY_VIOLATION) throw err;
+    req.flash('error', 'This category has complaints, so it cannot be removed. You can rename it instead.');
+  }
+  res.redirect('/admin/categories');
+});
+
 // ---------------------------------------------------------------- own account
 router.get('/account', (req, res) => {
   res.render('admin/account', { title: 'My account' });

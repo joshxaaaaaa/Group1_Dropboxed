@@ -1,5 +1,11 @@
 node_modules/
 .env
+.env.setup
 .pgdata/
 uploads/*
 !uploads/.gitkeep
+
+# Activity 6: never commit backup files that contain data.
+*.dump
+*.backup
+backups/

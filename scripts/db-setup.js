@@ -1,15 +1,23 @@
-// Creates the dropboxed schema, reference data and the first staff account.
+// Creates the dropboxed schema, reference data, the first staff account, and the
+// database roles and privileges.
 //
-//   npm run db:setup            create schema (if missing), seed categories, create admin
-//   npm run db:setup -- --reset drop and recreate the schema (deletes ALL data and uploads)
+//   npm run db:setup             create schema (if missing), seed categories, create admin,
+//                                apply database/03_roles.sql and database/04_privileges.sql
 //   npm run db:setup -- --sample also load demo residents, staff and complaints
+//   npm run db:setup -- --reset  drop and recreate the schema (deletes ALL data and uploads)
 //
-// Admin account: ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME from .env (defaults below).
+// Setup needs an administrative account but the running app must not have one, so
+// the admin credentials live in .env.setup, which only the setup scripts read.
+// Without .env.setup this falls back to the PG* settings in .env.
 
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const config = require('../src/config');
+const { useAdminConnection, scramVerifier } = require('./setup-env');
+
+// Must run before pool.js is loaded, because the pool reads PGUSER and PGPASSWORD.
+const runtime = useAdminConnection();
 const { pool, withTransaction } = require('../src/db/pool');
 
 const args = new Set(process.argv.slice(2));
@@ -70,7 +78,36 @@ async function main() {
 
   if (args.has('--sample')) await loadSampleData();
 
+  await applyAccessControl();
+
   console.log('Done.');
+}
+
+// Activity 4: creates the roles, sets their passwords and applies the privileges.
+// Passwords are sent as SCRAM verifiers so plain text never reaches the server log.
+async function applyAccessControl() {
+  const { rows } = await pool.query('SELECT rolsuper FROM pg_roles WHERE rolname = current_user');
+  if (!rows[0].rolsuper) {
+    console.log('  skipped roles and privileges: this account is not a superuser (see .env.setup.example)');
+    return;
+  }
+  await runSqlFile('03_roles.sql');
+  await runSqlFile('04_privileges.sql');
+
+  const passwords = {
+    dropboxed_app: runtime.user === 'dropboxed_app' ? runtime.password : undefined,
+    dropboxed_dba: process.env.DB_DBA_PASSWORD,
+    dropboxed_report: process.env.DB_REPORT_PASSWORD,
+    dropboxed_backup: process.env.DB_BACKUP_PASSWORD,
+  };
+  for (const [role, password] of Object.entries(passwords)) {
+    if (password) {
+      await pool.query(`ALTER ROLE ${role} PASSWORD '${scramVerifier(password)}'`);
+      console.log(`  set password for ${role}`);
+    } else {
+      console.log(`  no password provided for ${role}; it cannot log in until one is set`);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -266,6 +303,7 @@ async function loadSampleData() {
 main()
   .catch((err) => {
     console.error('Database setup failed:', err.message);
+    console.error('See docs/troubleshooting.md for common setup errors and their solutions.');
     process.exitCode = 1;
   })
   .finally(() => pool.end());

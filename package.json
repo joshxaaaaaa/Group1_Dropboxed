@@ -7,7 +7,9 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "db:setup": "node scripts/db-setup.js",
-    "db:embedded": "node scripts/embedded-db.js"
+    "db:verify": "node scripts/verify-privileges.js",
+    "db:embedded": "node scripts/embedded-db.js",
+    "test:smoke": "node scripts/smoke-test.js"
   },
   "keywords": [],
   "author": "RIPARION (BSIT 3-2)",
