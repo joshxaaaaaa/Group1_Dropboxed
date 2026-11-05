@@ -1,0 +1,125 @@
+<%- include('../partials/header', { narrow: true }) %>
+<%
+  const invalid = (name) => errors[name] ? ` class="is-invalid" aria-invalid="true" aria-describedby="${name}-error"` : '';
+  const val = (name) => values[name] === undefined || values[name] === null ? '' : String(values[name]);
+%>
+<a class="back-link" href="/my/complaints"><%- h.icon('arrowLeft', 'icon icon-sm') %>My complaints</a>
+<div class="page-head">
+  <div>
+    <h1>File a complaint</h1>
+    <p>Tell the water district what's wrong and where. Fields marked optional can be skipped.</p>
+  </div>
+</div>
+
+<% if (Object.keys(errors).length) { %>
+  <div class="flash flash-error" role="alert"><%- h.icon('alert') %><div>Please fix the highlighted fields below.</div></div>
+<% } %>
+
+<form class="card" method="post" action="/my/complaints" enctype="multipart/form-data" novalidate data-complaint-form>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <fieldset class="form-section first">
+    <legend class="sr-only">Type of problem</legend>
+    <h2>1. What's the problem?</h2>
+    <p>Choose the option that best matches what you see.</p>
+    <div class="choice-grid">
+      <% for (const c of categories) { %>
+        <label class="choice">
+          <input type="radio" name="category_id" value="<%= c.category_id %>" required<%= val('category_id') === String(c.category_id) ? ' checked' : '' %>>
+          <span class="choice-card">
+            <%- h.icon(h.categoryIcon(c.category_name)) %>
+            <span><strong><%= c.category_name %></strong><span><%= c.description %></span></span>
+          </span>
+        </label>
+      <% } %>
+    </div>
+    <div style="margin-top:8px"><%- include('../partials/field-error', { name: 'category_id' }) %></div>
+  </fieldset>
+
+  <div class="form-section">
+    <h2>2. Where is it happening?</h2>
+    <p>The household address where the water problem is.</p>
+    <% if (savedLocations.length) { %>
+      <div class="saved-addresses" aria-label="Saved addresses">
+        <% for (const l of savedLocations) { %>
+          <button type="button" class="chip-button"
+            data-fill-address
+            data-house-number="<%= l.house_number %>"
+            data-street="<%= l.street %>"
+            data-barangay="<%= l.barangay %>"
+            data-postal-code="<%= l.postal_code || '' %>">
+            <%- h.icon('pin', 'icon icon-sm') %><%= l.house_number %> <%= l.street %>, <%= l.barangay %>
+          </button>
+        <% } %>
+      </div>
+    <% } %>
+    <div class="form-grid">
+      <div class="field">
+        <label for="house_number">House / building no.</label>
+        <input id="house_number" name="house_number" type="text" maxlength="50" required value="<%= val('house_number') %>"<%- invalid('house_number') %>>
+        <%- include('../partials/field-error', { name: 'house_number' }) %>
+      </div>
+      <div class="field">
+        <label for="street">Street</label>
+        <input id="street" name="street" type="text" maxlength="150" required value="<%= val('street') %>"<%- invalid('street') %>>
+        <%- include('../partials/field-error', { name: 'street' }) %>
+      </div>
+      <div class="field">
+        <label for="barangay">Barangay</label>
+        <select id="barangay" name="barangay" required<%- invalid('barangay') %>>
+          <option value="">Select barangay</option>
+          <% for (const b of barangays) { %>
+            <option value="<%= b %>"<%= val('barangay') === b ? ' selected' : '' %>><%= b %></option>
+          <% } %>
+        </select>
+        <%- include('../partials/field-error', { name: 'barangay' }) %>
+      </div>
+      <div class="form-grid" style="gap:12px">
+        <div class="field">
+          <label for="city">City</label>
+          <input id="city" type="text" value="<%= city %>" readonly>
+        </div>
+        <div class="field">
+          <label for="postal_code">Postal code <span class="label-optional">(optional)</span></label>
+          <input id="postal_code" name="postal_code" type="text" inputmode="numeric" maxlength="4" value="<%= val('postal_code') %>"<%- invalid('postal_code') %>>
+          <%- include('../partials/field-error', { name: 'postal_code' }) %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2>3. Describe the problem</h2>
+    <p>When did it start, how often does it happen, and what does the water look or smell like?</p>
+    <div class="field">
+      <label for="description" class="sr-only">Description</label>
+      <textarea id="description" name="description" maxlength="2000" required data-counter="description-count"
+        placeholder="e.g. Since Monday the water from the kitchen tap is brown for the first few minutes every morning, with sediment at the bottom of the pail."<%- invalid('description') %>><%= val('description') %></textarea>
+      <span class="hint"><span id="description-count">0</span> / 2,000 characters</span>
+      <%- include('../partials/field-error', { name: 'description' }) %>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2>4. Add photos <span class="label-optional" style="font-size:.9rem">(optional)</span></h2>
+    <p>Photos of discolored water, sediment or the leak help staff judge urgency before a site visit.</p>
+    <div class="dropzone<%= errors.photos ? ' is-invalid' : '' %>" data-dropzone>
+      <%- h.icon('upload') %>
+      <div><strong>Choose photos</strong> or drag them here</div>
+      <div class="hint">JPEG or PNG · up to <%= maxFiles %> photos · <%= maxMb %> MB each</div>
+      <input id="photos" name="photos" type="file" accept="image/jpeg,image/png" multiple
+        data-max-files="<%= maxFiles %>" data-max-bytes="<%= maxMb * 1024 * 1024 %>" aria-describedby="photos-error">
+    </div>
+    <div class="file-previews" data-previews></div>
+    <span class="field-error" id="photos-error" data-photo-error<%= errors.photos ? '' : ' hidden' %>><%- h.icon('alert', 'icon icon-sm') %><span><%= errors.photos || '' %></span></span>
+    <% if (errors.photos || Object.keys(errors).length) { %>
+      <p class="hint" style="margin-top:6px">For security, photos need to be chosen again after a form error.</p>
+    <% } %>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-primary btn-lg" type="submit"><%- h.icon('checkCircle') %>Submit complaint</button>
+    <a class="btn btn-ghost" href="/my/complaints">Cancel</a>
+  </div>
+</form>
+<%- include('../partials/footer') %>

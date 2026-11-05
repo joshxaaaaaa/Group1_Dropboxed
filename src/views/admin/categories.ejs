@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>Complaint categories</h1>
+    <p>The water problem types residents choose from. Categories in use can be renamed but not removed, so past complaints keep their type.</p>
+  </div>
+</div>
+
+<div class="layout-detail">
+  <div class="stack">
+    <% for (const c of categories) { %>
+      <form class="card" method="post" action="/admin/categories/<%= c.category_id %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="card-head">
+          <h3 style="display:flex;gap:8px;align-items:center"><%- h.icon(h.categoryIcon(c.category_name)) %><%= c.category_name %></h3>
+          <a class="small" href="/admin/complaints?category=<%= c.category_id %>"><%= h.plural(c.complaint_count, 'complaint') %></a>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="name-<%= c.category_id %>">Name</label>
+            <input id="name-<%= c.category_id %>" name="category_name" type="text" maxlength="100" value="<%= c.category_name %>" required>
+          </div>
+          <div class="field">
+            <label for="desc-<%= c.category_id %>">Description</label>
+            <textarea id="desc-<%= c.category_id %>" name="description" rows="2" style="min-height:42px"><%= c.description || '' %></textarea>
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:12px"><button class="btn btn-secondary btn-sm" type="submit">Save</button></div>
+      </form>
+    <% } %>
+  </div>
+
+  <form class="card" method="post" action="/admin/categories" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <h2 style="display:flex;gap:8px;align-items:center"><%- h.icon('plus') %>Add a category</h2>
+    <div class="field">
+      <label for="category_name">Name</label>
+      <input id="category_name" name="category_name" type="text" maxlength="100" value="<%= values.category_name || '' %>"<%- errors.category_name ? ' class="is-invalid" aria-invalid="true"' : '' %>>
+      <%- include('../partials/field-error', { name: 'category_name' }) %>
+    </div>
+    <div class="field">
+      <label for="description">Description <span class="label-optional">(optional)</span></label>
+      <textarea id="description" name="description" rows="3"><%= values.description || '' %></textarea>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary btn-block" type="submit">Add category</button></div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

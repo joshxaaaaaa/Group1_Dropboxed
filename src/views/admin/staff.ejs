@@ -1,0 +1,71 @@
+<%- include('../partials/header') %>
+<% const invalid = (name) => errors[name] ? ` class="is-invalid" aria-invalid="true" aria-describedby="${name}-error"` : ''; %>
+<div class="page-head">
+  <div>
+    <h1>Staff</h1>
+    <p>Water district staff and administrators who can manage complaints.</p>
+  </div>
+</div>
+
+<div class="layout-detail">
+  <section class="card card-flush">
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Staff member</th><th class="num">Open assignments</th><th class="num">Resolved</th><th>Last update</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          <% for (const s of staff) { const isMe = s.staff_id === currentUser.id; %>
+            <tr>
+              <td><strong><%= s.full_name %></strong><%= isMe ? ' (you)' : '' %><span class="cell-sub"><%= s.email %></span></td>
+              <td class="num"><a href="/admin/complaints?assigned=<%= s.staff_id %>&status=open"><%= s.open_assignments %></a></td>
+              <td class="num"><%= s.resolved_count %></td>
+              <td class="nowrap"><%= s.last_update_at ? h.timeAgo(s.last_update_at) : '—' %></td>
+              <td><span class="badge <%= s.account_status === 'Active' ? 'badge-resolved' : 'badge-inactive' %>"><%= s.account_status %></span></td>
+              <td class="right">
+                <% if (!isMe) { %>
+                  <form method="post" action="/admin/staff/<%= s.staff_id %>/status">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <% if (s.account_status === 'Active') { %>
+                      <input type="hidden" name="account_status" value="Inactive">
+                      <button class="btn btn-danger btn-sm" type="submit" data-confirm="Deactivate <%= s.full_name %>? Their past status updates stay on record.">Deactivate</button>
+                    <% } else { %>
+                      <input type="hidden" name="account_status" value="Active">
+                      <button class="btn btn-secondary btn-sm" type="submit">Reactivate</button>
+                    <% } %>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <form class="card" method="post" action="/admin/staff" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <h2 style="display:flex;gap:8px;align-items:center"><%- h.icon('plus') %>Add a staff account</h2>
+    <p class="muted small">Share the temporary password privately. They can change it under My account.</p>
+    <div class="field">
+      <label for="full_name">Full name</label>
+      <input id="full_name" name="full_name" type="text" maxlength="150" value="<%= values.full_name || '' %>"<%- invalid('full_name') %>>
+      <%- include('../partials/field-error', { name: 'full_name' }) %>
+    </div>
+    <div class="field">
+      <label for="email">Work email</label>
+      <input id="email" name="email" type="email" maxlength="150" value="<%= values.email || '' %>"<%- invalid('email') %>>
+      <%- include('../partials/field-error', { name: 'email' }) %>
+    </div>
+    <div class="field">
+      <label for="password">Temporary password</label>
+      <input id="password" name="password" type="password" autocomplete="new-password"<%- invalid('password') %>>
+      <%- include('../partials/field-error', { name: 'password' }) %>
+    </div>
+    <div class="field">
+      <label for="confirm_password">Confirm password</label>
+      <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password"<%- invalid('confirm_password') %>>
+      <%- include('../partials/field-error', { name: 'confirm_password' }) %>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary btn-block" type="submit">Create staff account</button></div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

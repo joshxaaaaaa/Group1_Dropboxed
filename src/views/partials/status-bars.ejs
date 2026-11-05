@@ -1,0 +1,25 @@
+<%
+  // Horizontal bars stacked by status. rows: [{ label, pending, in_progress, resolved, total, href? }]
+  const segments = [['pending', 'pending', 'Pending'], ['in_progress', 'progress', 'In Progress'], ['resolved', 'resolved', 'Resolved']];
+  const maxTotal = Math.max(1, ...rows.map((r) => r.total));
+%>
+<div class="legend" style="margin-bottom:14px">
+  <span><i class="swatch seg-pending"></i>Pending</span>
+  <span><i class="swatch seg-progress"></i>In Progress</span>
+  <span><i class="swatch seg-resolved"></i>Resolved</span>
+</div>
+<div class="bars">
+  <% for (const r of rows) { %>
+    <div class="bar-row">
+      <span class="bar-label" title="<%= r.label %>"><% if (r.href) { %><a href="<%= r.href %>" style="color:inherit"><%= r.label %></a><% } else { %><%= r.label %><% } %></span>
+      <div class="bar-track" style="width:<%= ((r.total / maxTotal) * 100).toFixed(1) %>%">
+        <% for (const [key, cls, label] of segments) { if (r[key] > 0) { %>
+          <span class="bar-seg seg-<%= cls %>" style="flex:<%= r[key] %> 1 0" tabindex="0"
+            data-tip="<%= r.label %> · <%= label %>: <%= r[key] %> of <%= r.total %> (<%= h.percent(r[key], r.total) %>%)"
+            aria-label="<%= label %>: <%= r[key] %>"></span>
+        <% } } %>
+      </div>
+      <span class="bar-value"><%= h.number(r.total) %></span>
+    </div>
+  <% } %>
+</div>

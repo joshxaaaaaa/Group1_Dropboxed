@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= locals.title ? `${title} · DropBoxed` : 'DropBoxed' %></title>
+  <meta name="description" content="DropBoxed: report and track household water problems in San Pedro, Laguna.">
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/styles.css?v=<%= locals.assetVersion %>">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<%
+  const user = locals.currentUser;
+  const path = locals.currentPath || '';
+  const navLinks = !user ? [] : user.role === 'staff'
+    ? [
+        { href: '/admin', label: 'Dashboard', icon: 'dashboard' },
+        { href: '/admin/complaints', label: 'Complaints', icon: 'list' },
+        { href: '/admin/reports', label: 'Reports', icon: 'chart' },
+        { href: '/admin/residents', label: 'Residents', icon: 'users' },
+        { href: '/admin/staff', label: 'Staff', icon: 'shield' },
+        { href: '/admin/categories', label: 'Categories', icon: 'tag' },
+      ]
+    : [
+        { href: '/my/complaints', label: 'My complaints', icon: 'list' },
+        { href: '/my/complaints/new', label: 'File a complaint', icon: 'plus' },
+      ];
+  // The active link is the longest one the current path falls under.
+  const activeHref = navLinks
+    .map((l) => l.href)
+    .filter((href) => path === href || path.startsWith(href + '/'))
+    .sort((a, b) => b.length - a.length)[0];
+  const isActive = (link) => link.href === activeHref;
+  const h = locals.h;
+%>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">
+      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="#123f60" stroke="#2b6f99"/>
+        <path d="M16 6.5c-3.7 4.7-6.6 8.4-6.6 11.7a6.6 6.6 0 0 0 13.2 0c0-3.3-2.9-7-6.6-11.7z" fill="#7cc8f0"/>
+        <path d="M13 18.6a3.2 3.2 0 0 0 3 3.1" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".85"/>
+      </svg>
+      <span>Drop<b>Boxed</b></span>
+      <% if (user && user.role === 'staff') { %><span class="brand-tag">Staff</span><% } %>
+    </a>
+    <% if (user) { %>
+      <nav class="nav" aria-label="Main">
+        <% for (const link of navLinks) { %>
+          <a href="<%= link.href %>"<% if (isActive(link)) { %> aria-current="page"<% } %>><%- h ? h.icon(link.icon, 'icon icon-sm') : '' %><%= link.label %></a>
+        <% } %>
+      </nav>
+      <div class="account">
+        <a class="account-name" href="<%= user.role === 'staff' ? '/admin/account' : '/my/profile' %>" title="Account settings">
+          <span class="avatar"><%= h ? h.initials(user.name) : '' %></span>
+          <span class="name"><%= user.name %></span>
+        </a>
+        <form method="post" action="/logout">
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+          <button class="btn-logout" type="submit"><%- h ? h.icon('logout', 'icon icon-sm') : '' %><span>Log out</span></button>
+        </form>
+      </div>
+    <% } else { %>
+      <div class="account">
+        <a class="nav-link" href="/login" style="color:#cfe3f1;text-decoration:none;font-weight:500">Log in</a>
+        <a class="btn btn-primary btn-sm" href="/register" style="background:#fff;color:var(--brand-800)">Register</a>
+      </div>
+    <% } %>
+  </div>
+</header>
+<% if (!locals.fullBleed) { %><main id="main" class="page<%= locals.narrow ? ' page-narrow' : '' %>"><% } else { %><main id="main"><% } %>
+<% if (!locals.fullBleed) { %><%- include('flash') %><% } %>

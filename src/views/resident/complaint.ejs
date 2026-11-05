@@ -1,0 +1,82 @@
+<%- include('../partials/header') %>
+<%
+  const order = ['Pending', 'In Progress', 'Resolved'];
+  const currentIndex = order.indexOf(complaint.status);
+  const stepTime = {
+    Pending: complaint.submitted_at,
+    'In Progress': (logs.find((l) => l.status === 'In Progress') || {}).updated_at,
+    Resolved: complaint.resolved_at,
+  };
+%>
+<a class="back-link" href="/my/complaints"><%- h.icon('arrowLeft', 'icon icon-sm') %>My complaints</a>
+<div class="detail-header">
+  <div>
+    <h1>Complaint #<%= complaint.complaint_id %></h1>
+    <div class="badges">
+      <%- include('../partials/status-badge', { status: complaint.status }) %>
+      <span class="badge badge-neutral"><%= complaint.category_name %></span>
+      <span class="muted small">Filed <%= h.formatDateTime(complaint.submitted_at) %></span>
+    </div>
+  </div>
+</div>
+
+<% if (complaint.is_flagged) { %>
+  <div class="notice notice-warn" style="margin-bottom:16px">
+    <%- h.icon('flag') %>
+    <span><strong>Under review.</strong> Water district staff are reviewing this complaint<%= complaint.flag_reason ? `: ${complaint.flag_reason}` : '.' %> It stays on record and will still be handled.</span>
+  </div>
+<% } %>
+
+<div class="card" style="margin-bottom:20px">
+  <div class="stepper" role="list" aria-label="Complaint progress">
+    <% order.forEach((s, i) => { const state = i < currentIndex || complaint.status === 'Resolved' ? 'done' : i === currentIndex ? 'current' : ''; %>
+      <div class="step <%= state %>" role="listitem"<% if (i === currentIndex) { %> aria-current="step"<% } %>>
+        <span class="marker"><% if (state === 'done') { %><%- h.icon('check') %><% } else { %><%= i + 1 %><% } %></span>
+        <strong><%= s %></strong>
+        <span><%= stepTime[s] ? h.formatDate(stepTime[s]) : (i > currentIndex ? 'Not yet' : '') %></span>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<div class="layout-detail">
+  <div class="stack">
+    <section class="card">
+      <div class="card-head"><h2>Details</h2></div>
+      <p class="description"><%= complaint.description %></p>
+      <dl class="facts" style="margin-top:18px">
+        <div class="span-2"><dt>Location</dt><dd><%= h.address(complaint) %></dd></div>
+        <div><dt>Type of problem</dt><dd><%= complaint.category_name %></dd></div>
+        <div><dt>Submitted</dt><dd><%= h.formatDateTime(complaint.submitted_at) %></dd></div>
+        <% if (complaint.resolved_at) { %>
+          <div><dt>Resolved</dt><dd><%= h.formatDateTime(complaint.resolved_at) %></dd></div>
+          <div><dt>Time to resolve</dt><dd><%= h.duration(h.hoursBetween(complaint.submitted_at, complaint.resolved_at)) %></dd></div>
+        <% } %>
+        <% if (complaint.assigned_staff) { %>
+          <div class="span-2"><dt>Handled by</dt><dd><%= complaint.assigned_staff %></dd></div>
+        <% } %>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Photos</h2><span class="muted"><%= h.plural(attachments.length, 'photo') %></span></div>
+      <% if (attachments.length) { %>
+        <div class="photo-grid">
+          <% for (const a of attachments) { %>
+            <a href="/attachments/<%= a.attachment_id %>" target="_blank" rel="noopener" title="<%= a.file_name %> (<%= h.fileSize(a.file_size_bytes) %>)">
+              <img src="/attachments/<%= a.attachment_id %>" alt="Photo <%= a.file_name %>" loading="lazy">
+            </a>
+          <% } %>
+        </div>
+      <% } else { %>
+        <p class="muted" style="margin:0">No photos were attached to this complaint.</p>
+      <% } %>
+    </section>
+  </div>
+
+  <aside class="card side-card">
+    <h3><%- h.icon('clock') %>History</h3>
+    <%- include('../partials/timeline', { complaint, logs }) %>
+  </aside>
+</div>
+<%- include('../partials/footer') %>

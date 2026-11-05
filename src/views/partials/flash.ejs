@@ -1,0 +1,9 @@
+<% if (locals.flash) {
+  const flashIcon = { success: 'checkCircle', error: 'alert', warning: 'alert', info: 'info' }[flash.type] || 'info';
+%>
+  <div class="flash flash-<%= flash.type %>" role="<%= flash.type === 'error' ? 'alert' : 'status' %>">
+    <%- h.icon(flashIcon) %>
+    <div><%= flash.message %></div>
+    <button type="button" class="flash-close" aria-label="Dismiss" data-dismiss><%- h.icon('x', 'icon icon-sm') %></button>
+  </div>
+<% } %>

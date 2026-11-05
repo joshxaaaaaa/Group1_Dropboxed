@@ -1,0 +1,93 @@
+<%- include('partials/header', { fullBleed: true }) %>
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <% if (locals.flash) { %><div style="max-width:560px"><%- include('partials/flash') %></div><% } %>
+      <span class="brand-tag" style="display:inline-block;margin-bottom:14px">San Pedro, Laguna</span>
+      <h1>Rusty water at home? <span>Report it, track it, get it fixed.</span></h1>
+      <p class="lead">
+        DropBoxed gives San Pedro households one place to report water problems, from rusty or
+        contaminated water and low pressure to foul odor and pipe leaks. You can follow each
+        report until the water district resolves it.
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary btn-lg" href="/register"><%- h.icon('plus') %>File a complaint</a>
+        <a class="btn btn-secondary btn-lg" href="/login">I have an account</a>
+      </div>
+      <p class="small" style="margin-top:20px;opacity:.85">
+        Water district staff? <a href="/staff/login" style="color:#bfe4f8">Log in to the staff console</a>
+      </p>
+    </div>
+
+    <div class="hero-card" aria-hidden="true">
+      <div class="muted small" style="text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px">Example complaint</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <strong>Brown water from kitchen tap</strong>
+        <span class="badge badge-progress">In Progress</span>
+      </div>
+      <div class="muted small" style="margin:2px 0 16px">Rusty / Contaminated Water · Brgy. Landayan</div>
+      <ul class="timeline">
+        <li>
+          <span class="t-marker pending"><%- h.icon('inbox') %></span>
+          <div class="t-title">Submitted</div>
+          <div class="t-meta">Resident attached 2 photos</div>
+        </li>
+        <li>
+          <span class="t-marker progress"><%- h.icon('wrench') %></span>
+          <div class="t-title">In Progress</div>
+          <div class="t-meta">Field team scheduled for line flushing</div>
+        </li>
+        <li>
+          <span class="t-marker"><%- h.icon('check') %></span>
+          <div class="t-title" style="color:var(--muted)">Resolved</div>
+          <div class="t-meta">You'll see the resolution notes here</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <svg class="hero-wave" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,38 C240,78 480,0 720,30 C960,60 1200,8 1440,38 L1440,70 L0,70 Z" fill="#f3f6f9"/>
+  </svg>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>What you can report</h2>
+    <p>Problems with the water reaching your household pipes. Billing and meter disputes are handled separately by the water district.</p>
+  </div>
+  <div class="category-cards">
+    <% categories.forEach((c) => { const primary = h.categoryIcon(c.category_name) === 'droplet'; %>
+      <div class="category-card<%= primary ? ' primary' : '' %>">
+        <%- h.icon(h.categoryIcon(c.category_name)) %>
+        <% if (primary) { %><span class="focus-tag">Main focus</span><% } %>
+        <h3><%= c.category_name %></h3>
+        <p><%= c.description %></p>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="section-head">
+    <h2>How it works</h2>
+    <p>Every complaint is recorded with a timestamped history, so you always know where it stands.</p>
+  </div>
+  <div class="steps">
+    <div class="step-card">
+      <div class="num-badge">1</div>
+      <h3>Create your account</h3>
+      <p class="muted">Register with your email so your complaints stay linked to you and your household.</p>
+    </div>
+    <div class="step-card">
+      <div class="num-badge">2</div>
+      <h3>Describe the problem</h3>
+      <p class="muted">Choose the type of problem, add your address and a description, and attach photos of discolored water or leaks.</p>
+    </div>
+    <div class="step-card">
+      <div class="num-badge">3</div>
+      <h3>Track it to resolution</h3>
+      <p class="muted">Watch your complaint move from <strong>Pending</strong> to <strong>In Progress</strong> to <strong>Resolved</strong>, with notes from the field team.</p>
+    </div>
+  </div>
+</section>
+<%- include('partials/footer') %>

@@ -1,0 +1,132 @@
+<%- include('../partials/header') %>
+<% const id = complaint.complaint_id; %>
+<a class="back-link" href="/admin/complaints"><%- h.icon('arrowLeft', 'icon icon-sm') %>All complaints</a>
+<div class="detail-header">
+  <div>
+    <h1>Complaint #<%= id %> · <%= complaint.category_name %></h1>
+    <div class="badges">
+      <%- include('../partials/status-badge', { status: complaint.status }) %>
+      <% if (complaint.is_flagged) { %><span class="badge badge-flag"><%- h.icon('flag', 'icon icon-sm') %>Flagged for review</span><% } %>
+      <span class="muted small">Filed <%= h.formatDateTime(complaint.submitted_at) %> (<%= h.timeAgo(complaint.submitted_at) %>) by <%= complaint.resident_name %></span>
+    </div>
+  </div>
+</div>
+
+<div class="layout-detail">
+  <div class="stack">
+    <section class="card">
+      <div class="card-head"><h2>Details</h2></div>
+      <p class="description"><%= complaint.description %></p>
+      <dl class="facts" style="margin-top:18px">
+        <div class="span-2"><dt>Location</dt><dd><%- h.icon('pin', 'icon icon-sm') %> <%= h.address(complaint) %></dd></div>
+        <div><dt>Resident</dt><dd><%= complaint.resident_name %></dd></div>
+        <div><dt>Contact</dt><dd>
+          <a href="mailto:<%= complaint.resident_email %>"><%= complaint.resident_email %></a>
+          <% if (complaint.resident_phone) { %><br><a href="tel:<%= complaint.resident_phone.replace(/[^0-9+]/g, '') %>"><%= complaint.resident_phone %></a><% } %>
+        </dd></div>
+        <div><dt>Submitted</dt><dd><%= h.formatDateTime(complaint.submitted_at) %></dd></div>
+        <div><dt>Resolved</dt><dd><%= complaint.resolved_at ? `${h.formatDateTime(complaint.resolved_at)} (${h.duration(h.hoursBetween(complaint.submitted_at, complaint.resolved_at))})` : '—' %></dd></div>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Photos</h2><span class="muted"><%= h.plural(attachments.length, 'photo') %></span></div>
+      <% if (attachments.length) { %>
+        <div class="photo-grid">
+          <% for (const a of attachments) { %>
+            <a href="/attachments/<%= a.attachment_id %>" target="_blank" rel="noopener" data-tip="<%= a.file_name %> · <%= h.fileSize(a.file_size_bytes) %> · <%= a.file_type %>">
+              <img src="/attachments/<%= a.attachment_id %>" alt="Photo <%= a.file_name %>" loading="lazy">
+            </a>
+          <% } %>
+        </div>
+        <p class="hint" style="margin:10px 0 0">If a photo is unrelated or inappropriate, flag the complaint for review.</p>
+      <% } else { %>
+        <p class="muted" style="margin:0">No photos were attached.</p>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>History</h2><span class="muted"><%= h.plural(logs.length, 'status update') %></span></div>
+      <%- include('../partials/timeline', { complaint, logs, showResident: true }) %>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <section class="card side-card">
+      <h3><%- h.icon('wrench') %>Status</h3>
+      <% if (nextStatus) { %>
+        <form method="post" action="/admin/complaints/<%= id %>/status">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="status" value="<%= nextStatus %>">
+          <div class="field">
+            <label for="remarks"><%= nextStatus === 'Resolved' ? 'How was it resolved?' : 'Remarks' %> <span class="label-optional">(shown to the resident)</span></label>
+            <textarea id="remarks" name="remarks" rows="3" maxlength="2000" style="min-height:90px"
+              placeholder="<%= nextStatus === 'Resolved' ? 'e.g. Flushed the service line and replaced the corroded section.' : 'e.g. Field team scheduled for inspection tomorrow morning.' %>"></textarea>
+          </div>
+          <div class="form-actions" style="margin-top:12px">
+            <button class="btn <%= nextStatus === 'Resolved' ? 'btn-success' : 'btn-primary' %> btn-block" type="submit">
+              <%- h.icon(nextStatus === 'Resolved' ? 'checkCircle' : 'arrowRight') %><%= nextStatus === 'Resolved' ? 'Mark as Resolved' : 'Move to In Progress' %>
+            </button>
+          </div>
+        </form>
+        <p class="hint" style="margin:10px 0 0">Complaints move one step at a time: Pending → In Progress → Resolved. Each change is logged with your name and the time.</p>
+      <% } else { %>
+        <p style="margin:0">Resolved on <strong><%= h.formatDateTime(complaint.resolved_at) %></strong>.</p>
+        <p class="hint" style="margin:6px 0 0">Resolved complaints are closed. The resident can file a new complaint if the problem returns.</p>
+      <% } %>
+    </section>
+
+    <section class="card side-card">
+      <h3><%- h.icon('users') %>Assigned staff</h3>
+      <% if (assignments.length) { %>
+        <% for (const a of assignments) { %>
+          <div class="assignee">
+            <span class="avatar" style="background:var(--brand-100);color:var(--brand-700)"><%= h.initials(a.full_name) %></span>
+            <div class="who"><%= a.full_name %><%= a.staff_id === currentUser.id ? ' (you)' : '' %><span>Assigned <%= h.formatDate(a.assigned_at) %></span></div>
+            <form method="post" action="/admin/complaints/<%= id %>/unassign">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="staff_id" value="<%= a.staff_id %>">
+              <button class="btn btn-ghost btn-sm" type="submit" aria-label="Remove <%= a.full_name %>" data-tip="Remove assignment"><%- h.icon('x', 'icon icon-sm') %></button>
+            </form>
+          </div>
+        <% } %>
+      <% } else { %>
+        <p class="muted small" style="margin:0">No one is assigned yet. Whoever moves it to In Progress is assigned automatically.</p>
+      <% } %>
+      <% if (unassignedStaff.length) { %>
+        <form class="assign-form" method="post" action="/admin/complaints/<%= id %>/assign">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <label for="staff_id" class="sr-only">Staff member</label>
+          <select id="staff_id" name="staff_id" required>
+            <% for (const s of unassignedStaff) { %><option value="<%= s.staff_id %>"<%= s.staff_id === currentUser.id ? ' selected' : '' %>><%= s.full_name %><%= s.staff_id === currentUser.id ? ' (me)' : '' %></option><% } %>
+          </select>
+          <button class="btn btn-secondary btn-sm" type="submit"><%- h.icon('plus', 'icon icon-sm') %>Assign</button>
+        </form>
+      <% } %>
+    </section>
+
+    <section class="card side-card">
+      <h3><%- h.icon('flag') %>Review flag</h3>
+      <% if (complaint.is_flagged) { %>
+        <div class="notice" style="margin-bottom:12px"><span><%= complaint.flag_reason %></span></div>
+        <form method="post" action="/admin/complaints/<%= id %>/flag">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="action" value="clear">
+          <button class="btn btn-secondary btn-block" type="submit" data-confirm="Clear the review flag on complaint #<%= id %>?"><%- h.icon('check') %>Clear flag</button>
+        </form>
+      <% } else { %>
+        <form method="post" action="/admin/complaints/<%= id %>/flag">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="action" value="flag">
+          <div class="field">
+            <label for="flag_reason">Reason</label>
+            <textarea id="flag_reason" name="flag_reason" rows="2" maxlength="1000" required style="min-height:70px" placeholder="e.g. Duplicate of #123, or photo unrelated to the complaint"></textarea>
+          </div>
+          <div class="form-actions" style="margin-top:12px"><button class="btn btn-danger btn-block" type="submit"><%- h.icon('flag') %>Flag for review</button></div>
+        </form>
+      <% } %>
+      <p class="hint" style="margin:10px 0 0">Flagged complaints are never deleted. They stay on record for accountability.</p>
+    </section>
+  </aside>
+</div>
+<%- include('../partials/footer') %>

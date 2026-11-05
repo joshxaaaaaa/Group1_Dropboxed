@@ -1,0 +1,19 @@
+<%# Table body rows for staff complaint lists. Expects `rows`. %>
+<% for (const c of rows) { %>
+  <tr>
+    <td class="id-cell">#<%= c.complaint_id %></td>
+    <td>
+      <a class="row-link" href="/admin/complaints/<%= c.complaint_id %>"><%= c.category_name %></a>
+      <% if (c.is_flagged) { %> <span class="badge badge-flag" title="<%= c.flag_reason %>"><%- h.icon('flag', 'icon icon-sm') %>Flagged</span><% } %>
+      <span class="cell-sub truncate"><%= c.description %></span>
+    </td>
+    <td>
+      <span class="nowrap">Brgy. <%= c.barangay %></span>
+      <span class="cell-sub"><%= c.house_number %> <%= c.street %></span>
+    </td>
+    <td><%= c.resident_name %></td>
+    <td class="nowrap"><%= h.formatDate(c.submitted_at) %><span class="cell-sub"><%= h.timeAgo(c.submitted_at) %></span></td>
+    <td><%- include('status-badge', { status: c.status }) %></td>
+    <td><%= c.assigned_staff || '—' %></td>
+  </tr>
+<% } %>

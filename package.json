@@ -1,0 +1,32 @@
+{
+  "name": "dropboxed",
+  "version": "1.0.0",
+  "description": "DropBoxed: environmental complaint application for household water quality monitoring in San Pedro",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "db:setup": "node scripts/db-setup.js",
+    "db:embedded": "node scripts/embedded-db.js"
+  },
+  "keywords": [],
+  "author": "RIPARION (BSIT 3-2)",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-session": "^2.1.1",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "multer": "^2.5.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.14",
+    "@electric-sql/pglite-socket": "^0.2.17"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=21.7"
+  }
+}

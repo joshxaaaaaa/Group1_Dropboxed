@@ -1,0 +1,175 @@
+<%- include('../partials/header') %>
+<%
+  const scale = h.niceScale(Math.max(0, ...monthly.map((m) => Math.max(m.submitted, m.resolved))));
+  const labelEvery = Math.ceil(monthly.length / 12);
+  const maxCell = Math.max(1, ...matrix.flatMap((r) => Object.values(r.counts)));
+  const heat = (v) => (!v ? 0 : Math.min(5, Math.ceil((v / maxCell) * 5)));
+  const resolvedShare = h.percent(summary.resolved, summary.total);
+  const topArea = byBarangay[0];
+  const topCategory = byCategory.find((c) => c.total > 0);
+%>
+<div class="page-head">
+  <div>
+    <h1>Reports</h1>
+    <p>Complaints submitted <strong><%= h.formatDate(from) %></strong> to <strong><%= h.formatDate(to) %></strong>.</p>
+  </div>
+  <div class="actions no-print">
+    <a class="btn btn-secondary" href="/admin/reports/export.csv<%= h.query({ from, to }) %>"><%- h.icon('download') %>Export CSV</a>
+    <button class="btn btn-secondary" type="button" data-print><%- h.icon('printer') %>Print</button>
+  </div>
+</div>
+
+<div class="print-only" style="margin-bottom:12px">
+  <strong>DropBoxed: Household Water Complaint Report</strong> · San Pedro water district ·
+  Generated <%= h.formatDateTime(generatedAt) %> by <%= currentUser.name %>
+</div>
+
+<section class="card no-print" style="margin-bottom:16px">
+  <form method="get" action="/admin/reports" class="filters" style="grid-template-columns: repeat(2, minmax(140px, 200px)) auto 1fr">
+    <div class="field"><label for="from">From</label><input id="from" name="from" type="date" value="<%= from %>"></div>
+    <div class="field"><label for="to">To</label><input id="to" name="to" type="date" value="<%= to %>"></div>
+    <div class="filter-actions"><button class="btn btn-primary" type="submit">Update report</button></div>
+    <div class="filter-actions" style="justify-content:flex-end;flex-wrap:wrap">
+      <% const today = new Date(); const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; %>
+      <a class="btn btn-ghost btn-sm" href="/admin/reports?from=<%= iso(new Date(today.getFullYear(), today.getMonth(), 1)) %>&to=<%= iso(today) %>">This month</a>
+      <a class="btn btn-ghost btn-sm" href="/admin/reports?from=<%= iso(new Date(today.getFullYear(), today.getMonth() - 2, 1)) %>&to=<%= iso(today) %>">Last 3 months</a>
+      <a class="btn btn-ghost btn-sm" href="/admin/reports?from=<%= iso(new Date(today.getFullYear(), 0, 1)) %>&to=<%= iso(today) %>">This year</a>
+      <a class="btn btn-ghost btn-sm" href="/admin/reports">Last 12 months</a>
+    </div>
+  </form>
+</section>
+
+<div class="kpis">
+  <div class="kpi kpi-hero"><div class="kpi-label">Complaints in period</div><div class="kpi-value"><%= h.number(summary.total) %></div><div class="kpi-note"><%= resolvedShare %>% resolved</div></div>
+  <div class="kpi"><div class="kpi-label"><span class="dot dot-pending"></span>Pending</div><div class="kpi-value"><%= h.number(summary.pending) %></div></div>
+  <div class="kpi"><div class="kpi-label"><span class="dot dot-progress"></span>In progress</div><div class="kpi-value"><%= h.number(summary.in_progress) %></div></div>
+  <div class="kpi"><div class="kpi-label"><span class="dot dot-resolved"></span>Resolved</div><div class="kpi-value"><%= h.number(summary.resolved) %></div></div>
+  <div class="kpi"><div class="kpi-label"><%- h.icon('clock', 'icon icon-sm') %>Avg. time to resolve</div><div class="kpi-value"><%= h.duration(summary.avg_resolution_hours) %></div></div>
+  <div class="kpi"><div class="kpi-label"><%- h.icon('flag', 'icon icon-sm') %>Flagged</div><div class="kpi-value"><%= h.number(summary.flagged) %></div></div>
+</div>
+
+<% if (summary.total > 0) { %>
+  <div class="card" style="margin-bottom:16px;display:flex;gap:12px;align-items:flex-start;background:var(--brand-50);border-color:var(--info-line)">
+    <%- h.icon('info') %>
+    <p style="margin:0">
+      <strong><%= topCategory.category_name %></strong> was the most reported problem
+      (<%= h.plural(topCategory.total, 'complaint') %>, <%= h.percent(topCategory.total, summary.total) %>% of the period).
+      <strong>Brgy. <%= topArea.barangay %></strong> had the most complaints (<%= topArea.total %>), which may point to ageing pipelines in that area.
+    </p>
+  </div>
+<% } %>
+
+<section class="card" style="margin-bottom:16px">
+  <div class="card-head">
+    <h2>Complaints per month</h2>
+    <div class="legend">
+      <span><i class="swatch seg-submitted"></i>Submitted</span>
+      <span><i class="swatch seg-resolved"></i>Resolved</span>
+    </div>
+  </div>
+  <div class="columns-chart" role="img" aria-label="Column chart of complaints submitted and resolved per month. The data is also in the table below.">
+    <div class="columns-grid" aria-hidden="true">
+      <% for (const t of scale.ticks) { %><div><span><%= t %></span></div><% } %>
+    </div>
+    <div class="columns">
+      <% monthly.forEach((m, i) => { const label = h.formatMonth(m.month); %>
+        <div class="col-group">
+          <div class="col-pair">
+            <span class="col seg-submitted" style="height:<%= ((m.submitted / scale.top) * 100).toFixed(1) %>%" tabindex="0" data-tip="<%= label %> · Submitted: <%= m.submitted %>"></span>
+            <span class="col seg-resolved" style="height:<%= ((m.resolved / scale.top) * 100).toFixed(1) %>%" tabindex="0" data-tip="<%= label %> · Resolved: <%= m.resolved %>"></span>
+          </div>
+          <% if (i % labelEvery === 0) { %><span class="col-label"><%= label %></span><% } %>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+  <details style="margin-top:14px">
+    <summary class="small muted" style="cursor:pointer">Show as table</summary>
+    <div class="table-wrap" style="margin-top:8px">
+      <table class="table">
+        <thead><tr><th>Month</th><th class="num">Submitted</th><th class="num">Resolved</th></tr></thead>
+        <tbody>
+          <% for (const m of monthly) { %><tr><td><%= h.formatMonth(m.month) %></td><td class="num"><%= m.submitted %></td><td class="num"><%= m.resolved %></td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </details>
+</section>
+
+<div class="grid grid-2" style="margin-bottom:16px">
+  <section class="card">
+    <div class="card-head"><h2>By type of problem</h2></div>
+    <%- include('../partials/status-bars', { rows: byCategory.map((c) => ({ ...c, label: c.category_name })) }) %>
+    <div class="table-wrap" style="margin-top:18px">
+      <table class="table">
+        <thead><tr><th>Type</th><th class="num">Total</th><th class="num">Open</th><th class="num">Avg. to resolve</th></tr></thead>
+        <tbody>
+          <% for (const c of byCategory) { %>
+            <tr><td><%= c.category_name %></td><td class="num"><%= c.total %></td><td class="num"><%= c.pending + c.in_progress %></td><td class="num"><%= h.duration(c.avg_resolution_hours) %></td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>By barangay</h2><span class="muted"><%= h.plural(byBarangay.length, 'barangay') %> with complaints</span></div>
+    <% if (byBarangay.length) { %>
+      <%- include('../partials/status-bars', { rows: byBarangay.map((b) => ({ ...b, label: b.barangay, href: `/admin/complaints?barangay=${encodeURIComponent(b.barangay)}` })) }) %>
+    <% } else { %>
+      <div class="empty-state"><%- h.icon('pin') %><p>No complaints in this period.</p></div>
+    <% } %>
+  </section>
+</div>
+
+<% if (matrix.length) { %>
+  <section class="card card-flush" style="margin-bottom:16px">
+    <div class="card-head" style="padding-bottom:6px">
+      <h2>Area and type</h2>
+      <span class="muted">Darker cells = more complaints</span>
+    </div>
+    <p class="muted small" style="padding:0 20px">Clusters of rusty or contaminated water reports in one barangay often point to a corroded main line serving the area.</p>
+    <div class="table-wrap">
+      <table class="table heat">
+        <thead>
+          <tr>
+            <th>Barangay</th>
+            <% for (const c of byCategory) { %><th class="num" style="text-align:center;white-space:normal;min-width:90px"><%= c.category_name %></th><% } %>
+            <th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const row of matrix) { %>
+            <tr>
+              <td class="nowrap"><%= row.barangay %></td>
+              <% for (const c of byCategory) { const v = row.counts[c.category_id] || 0; %>
+                <td class="cell h<%= heat(v) %>" data-tip="Brgy. <%= row.barangay %> · <%= c.category_name %>: <%= v %>"><%= v %></td>
+              <% } %>
+              <td class="num"><strong><%= row.total %></strong></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% } %>
+
+<section class="card card-flush">
+  <div class="card-head" style="padding-bottom:14px"><h2>Staff activity</h2><span class="muted">status updates made in this period</span></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Staff member</th><th class="num">Started (In Progress)</th><th class="num">Resolved</th><th class="num">Open assignments now</th></tr></thead>
+      <tbody>
+        <% for (const s of staffActivity) { %>
+          <tr>
+            <td><a class="row-link" href="/admin/complaints?assigned=<%= s.staff_id %>"><%= s.full_name %></a></td>
+            <td class="num"><%= s.started %></td>
+            <td class="num"><%= s.resolved %></td>
+            <td class="num"><%= s.open_assignments %></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

@@ -1,0 +1,11 @@
+<%- include('partials/header', { narrow: true }) %>
+<div class="error-page">
+  <div class="error-code"><%= status %></div>
+  <h1><%= title %></h1>
+  <p class="muted"><%= message %></p>
+  <div class="form-actions" style="justify-content:center">
+    <a class="btn btn-primary" href="/">Go to home</a>
+    <button class="btn btn-secondary" type="button" onclick="history.back()">Go back</button>
+  </div>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,36 @@
+<%- include('../partials/header', { narrow: true }) %>
+<% const invalid = (name) => errors[name] ? ` class="is-invalid" aria-invalid="true" aria-describedby="${name}-error"` : ''; %>
+<div class="page-head">
+  <div style="display:flex;gap:14px;align-items:center">
+    <span class="avatar avatar-lg"><%= h.initials(currentUser.name) %></span>
+    <div>
+      <h1 style="margin:0"><%= currentUser.name %></h1>
+      <p style="margin:0"><%= currentUser.email %> · staff since <%= h.formatDate(currentUser.record.created_at) %></p>
+    </div>
+  </div>
+</div>
+
+<form class="card" method="post" action="/admin/account/password" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="card-head"><h2>Change password</h2></div>
+  <div class="form-grid">
+    <div class="field span-2">
+      <label for="current_password">Current password</label>
+      <input id="current_password" name="current_password" type="password" autocomplete="current-password"<%- invalid('current_password') %>>
+      <%- include('../partials/field-error', { name: 'current_password' }) %>
+    </div>
+    <div class="field">
+      <label for="new_password">New password</label>
+      <input id="new_password" name="new_password" type="password" autocomplete="new-password"<%- invalid('new_password') %>>
+      <%- include('../partials/field-error', { name: 'new_password' }) %>
+    </div>
+    <div class="field">
+      <label for="confirm_password">Confirm new password</label>
+      <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password"<%- invalid('confirm_password') %>>
+      <%- include('../partials/field-error', { name: 'confirm_password' }) %>
+    </div>
+  </div>
+  <p class="hint" style="margin-top:8px">At least 8 characters, with a letter and a number.</p>
+  <div class="form-actions"><button class="btn btn-primary" type="submit"><%- h.icon('key') %>Update password</button></div>
+</form>
+<%- include('../partials/footer') %>
